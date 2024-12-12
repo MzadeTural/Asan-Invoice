@@ -38,12 +38,12 @@ try:
     # Giriş butonuna tıkla
     login_button = driver.find_element(By.ID, "loginPageSignInButton")
     login_button.click()
-
+    #<h4 class="mr-5" id="asanVerificationCode">6960</h4>
     # Vergi ödeyici seçimi sayfası yükleniyor
-    WebDriverWait(driver, 30).until(
-        EC.presence_of_element_located((By.XPATH, "//h5[contains(text(), 'İnternet Vergi İdarəsi')]"))
-    )
-
+    code = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.ID, "asanVerificationCode"))
+        )
+    print(f"Asan Code: {code}")
     # BUTA TECH seçimi için şirket adı bulunuyor
     buta_tech = WebDriverWait(driver, 30).until(
         EC.element_to_be_clickable((By.XPATH, "//div[contains(text(), 'BUTA TECH')]"))
@@ -81,13 +81,14 @@ try:
             status = row.find_element(By.XPATH, ".//td[4]/span").text
             yekun_mebleg = row.find_element(By.XPATH, ".//div[contains(text(), 'Yekun məbləğ')]/following-sibling::div").text
             edv_mebleg = row.find_element(By.XPATH, ".//div[contains(text(), 'ƏDV məbləği')]/following-sibling::div").text
-            
+            series_and_number= row.find_element(By.XPATH, ".//div[contains(text(), 'Seriya və nömrə:')]/following-sibling::div").text
             invoice_data.append({
                 "voen_ad": voen_ad,
                 "imzalanma_tarixi": imzalanma_tarixi,
                 "status": status,
                 "yekun_mebleg": yekun_mebleg,
-                "edv_mebleg": edv_mebleg
+                "edv_mebleg": edv_mebleg,
+                "series_and_number": series_and_number
             })
 
         # Sonraki sayfaya geç

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request,Response
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
-import time
+import time,json
 
 app = Flask(__name__)
 
@@ -31,7 +31,12 @@ def fetch_invoices(mobile_number, user_id):
 
         driver.find_element(By.NAME, "userId").send_keys(user_id)
         driver.find_element(By.ID, "loginPageSignInButton").click()
-
+        time.sleep(1) 
+        code = WebDriverWait(driver, 10).until(
+          EC.visibility_of_element_located((By.ID, "asanVerificationCode"))
+        ).text
+        print(f"Asan Code: {code}")
+        
         # Wait for company selection and select 'BUTA TECH'
         WebDriverWait(driver, 30).until(
             EC.element_to_be_clickable((By.XPATH, "//div[contains(text(), 'BUTA TECH')]"))
@@ -62,15 +67,15 @@ def fetch_invoices(mobile_number, user_id):
                 status = row.find_element(By.XPATH, ".//td[4]/span").text
                 yekun_mebleg = row.find_element(By.XPATH, ".//div[contains(text(), 'Yekun məbləğ')]/following-sibling::div").text
                 edv_mebleg = row.find_element(By.XPATH, ".//div[contains(text(), 'ƏDV məbləği')]/following-sibling::div").text
-
+                series_and_number= row.find_element(By.XPATH, ".//div[contains(text(), 'Seriya və nömrə:')]/following-sibling::div").text
                 invoice_data.append({
                     "voen_ad": voen_ad,
                     "imzalanma_tarixi": imzalanma_tarixi,
                     "status": status,
                     "yekun_mebleg": yekun_mebleg,
-                    "edv_mebleg": edv_mebleg
+                    "edv_mebleg": edv_mebleg,
+                    "series_and_number": series_and_number
                 })
-
             # Move to the next page
             try:
                 next_button = driver.find_element(By.ID, "undefined-next")
@@ -98,6 +103,8 @@ def fetch_invoices_api():
     user_id = data.get('user_id')
 
     if not mobile_number or not user_id:
+
+
         return jsonify({"error": "Please provide 'mobile_number' and 'user_id'"}), 400
 
     # Fetch invoices
